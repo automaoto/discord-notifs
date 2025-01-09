@@ -1,8 +1,8 @@
 import requests
-import time
 import os
 from xml.etree import ElementTree
 from dotenv import load_dotenv
+
 load_dotenv()
 
 # Your Discord webhook URL
@@ -11,8 +11,8 @@ PYPI_WEBHOOK_URL = os.getenv("PYPI_WEBHOOK_URL")
 # PyPI RSS feed URL for the package
 PYPI_RSS_FEED = "https://pypi.org/rss/project/maoto-agent/releases.xml"
 
-# Track the latest version
-latest_version = None
+# File to store the last notified version
+LATEST_VERSION_FILE = "latest_version.txt"
 
 
 def get_latest_version():
@@ -23,6 +23,20 @@ def get_latest_version():
     # Parse the first entry
     latest_entry = tree.find(".//item/title").text
     return latest_entry.split()[-1]  # Extract version (e.g., "1.0.5")
+
+
+def read_last_version():
+    """Read the last notified version from the file."""
+    if os.path.exists(LATEST_VERSION_FILE):
+        with open(LATEST_VERSION_FILE, "r") as f:
+            return f.read().strip()
+    return None
+
+
+def write_last_version(version):
+    """Write the last notified version to the file."""
+    with open(LATEST_VERSION_FILE, "w") as f:
+        f.write(version)
 
 
 def post_to_discord(version):
@@ -42,7 +56,7 @@ def post_to_discord(version):
     }
 
     message = {
-        "content": "🎉 A new release is live! @everyone",
+        "content": "🎉 A new release is live! @here",
         "embeds": [embed],
     }
 
@@ -52,11 +66,13 @@ def post_to_discord(version):
 
 def main():
     try:
-        global latest_version
         current_version = get_latest_version()
-        if current_version != latest_version:
-            latest_version = current_version
-            post_to_discord(latest_version)
+        last_version = read_last_version()
+
+        if current_version != last_version:
+            # Post to Discord and update the last version file
+            post_to_discord(current_version)
+            write_last_version(current_version)
     except Exception as e:
         print(f"Error: {e}")
 
