@@ -64,21 +64,21 @@ def write_last_version(version):
 def post_to_discord(version):
     """Send an advanced notification to Discord."""
     embed = {
-        "title": f"🚀 New Release: maoto-agent v{version}",
+        "title": f"🚀 New Stable Release: maoto-agent v{version}",
         "description": (
             f"The `maoto-agent` package has just been updated to version `{version}`!\n\n"
-            "📥 **[Download Now](https://pypi.org/project/maoto-agent/{version}/)**\n"
+            f"📥 **[Download Now](https://pypi.org/project/maoto-agent/{version}/)**\n"
         ),
         "color": 16777215,  # White
         "fields": [
             {"name": "What's New?", "value": "• Bug fixes\n• Performance improvements\n• New features", "inline": False},
             {"name": "Changelog", "value": f"[View Release Notes](https://pypi.org/project/maoto-agent/{version}/#history)", "inline": False},
         ],
-        "footer": {"text": "Powered by Maoto", "icon_url": "https://example.com/footer-icon.png"},
+        "footer": {"text": "Powered by Maoto", "icon_url": "https://media.licdn.com/dms/image/v2/D560BAQG20uEQ9O819w/company-logo_100_100/company-logo_100_100/0/1721651548902/automaoto_logo?e=1744243200&v=beta&t=9Ar-aVbEIp4YZOwPWlOJgGvcSnBICEw4iqrdTsVtdeg"},
     }
 
     message = {
-        "content": "🎉 A new release is live! @here",
+        "content": "🎉 <@&1247823134200041523> Our new stable release is live! 🎉",
         "embeds": [embed],
     }
 
