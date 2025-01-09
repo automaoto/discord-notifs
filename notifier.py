@@ -64,10 +64,10 @@ def write_last_version(version):
 def post_to_discord(version):
     """Send an advanced notification to Discord."""
     embed = {
-        "title": f"🚀 New Stable Release: maoto-agent v{version}",
+        "title": f"🚀 New Stable Release",
         "description": (
+            f"### **[maoto-agent v{version}](https://pypi.org/project/maoto-agent/{version}/)**\n\n"
             f"The `maoto-agent` package has just been updated to version `{version}`!\n\n"
-            f"📥 **[Download Now](https://pypi.org/project/maoto-agent/{version}/)**\n"
         ),
         "color": 16777215,  # White
         "fields": [
