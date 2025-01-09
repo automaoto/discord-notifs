@@ -1,0 +1,27 @@
+name: PyPI Release Notifier
+
+on:
+  schedule:
+    - cron: "0 * * * *"  # Runs every hour
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  check_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11.0"  # Fix Python version to 3.11.0
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run notifier script
+        env:
+          PYPI_WEBHOOK_URL: ${{ secrets.PYPI_WEBHOOK_URL }}
+        run: python notifier.py
