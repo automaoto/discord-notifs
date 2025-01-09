@@ -2,6 +2,7 @@ import requests
 import os
 from xml.etree import ElementTree
 from dotenv import load_dotenv
+import re
 
 load_dotenv()
 
@@ -15,14 +16,35 @@ PYPI_RSS_FEED = "https://pypi.org/rss/project/maoto-agent/releases.xml"
 LATEST_VERSION_FILE = "latest_version.txt"
 
 
+def is_stable_version(version):
+    """
+    Check if a version is a stable release.
+    Stable versions do not contain pre-release identifiers like 'a', 'b', 'rc', etc.
+    """
+    # Regex to exclude pre-releases (e.g., 1.0.5-alpha, 1.0.5-beta, 1.0.5rc1)
+    return not re.search(r"(a|b|rc|alpha|beta|dev|pre)", version, re.IGNORECASE)
+
+
 def get_latest_version():
-    """Fetch the latest version of the package from the PyPI RSS feed."""
+    """
+    Fetch the latest stable version of the package from the PyPI RSS feed.
+    """
     response = requests.get(PYPI_RSS_FEED)
     response.raise_for_status()
     tree = ElementTree.fromstring(response.content)
-    # Parse the first entry
-    latest_entry = tree.find(".//item/title").text
-    return latest_entry.split()[-1]  # Extract version (e.g., "1.0.5")
+    
+    # Extract all versions from the RSS feed
+    versions = []
+    for item in tree.findall(".//item"):
+        title = item.find("title").text
+        version = title.split()[-1]  # Extract version (e.g., "1.0.5")
+        if is_stable_version(version):
+            versions.append(version)
+    
+    if versions:
+        # Sort versions and return the latest (stable)
+        return sorted(versions, key=lambda v: list(map(int, v.split("."))), reverse=True)[0]
+    return None  # Return None if no stable version is found
 
 
 def read_last_version():
@@ -69,7 +91,7 @@ def main():
         current_version = get_latest_version()
         last_version = read_last_version()
 
-        if current_version != last_version:
+        if current_version and current_version != last_version:
             # Post to Discord and update the last version file
             post_to_discord(current_version)
             write_last_version(current_version)
