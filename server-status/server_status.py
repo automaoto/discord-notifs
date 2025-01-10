@@ -6,7 +6,7 @@ import requests
 # Load environment variables from .secrets_status
 load_dotenv('.secrets_status')
 SERVER_WEBHOOK_URL = os.getenv("SERVER_WEBHOOK_URL")  # Discord Webhook URL
-STATUS_FILE = "server_status/latest_status.txt"  # File to track last status
+STATUS_FILE = "server-status/latest_status.txt"  # File to track last status
 
 def read_last_status():
     """Read the last known status from the status file."""
