@@ -16,7 +16,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11.0"  # Fix Python version to 3.11.0
+          python-version: "3.11.0"
 
       - name: Install dependencies
         run: pip install -r requirements.txt
@@ -24,4 +24,10 @@ jobs:
       - name: Run notifier script
         env:
           PYPI_WEBHOOK_URL: ${{ secrets.PYPI_WEBHOOK_URL }}
+          DISCORD_ROLE_ID: ${{ secrets.DISCORD_ROLE_ID }}
+          LATEST_VERSION: ${{ vars.LATEST_VERSION }}  # Provide the last version to the script
         run: python notifier.py
+
+      - name: Update LATEST_VERSION variable
+        if: success()
+        run: echo "LATEST_VERSION=${{ steps.set_env.outputs.latest_version }}" >> $GITHUB_ENV
