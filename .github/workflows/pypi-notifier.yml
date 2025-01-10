@@ -27,7 +27,7 @@ jobs:
           python-version: "3.11.0"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: pip install -r pypi-release-discord/requirements.txt
 
       - name: Fetch state branch
         run: |
@@ -43,4 +43,4 @@ jobs:
         env:
           PYPI_WEBHOOK_URL: ${{ secrets.PYPI_WEBHOOK_URL }}
           DISCORD_ROLE_ID: ${{ secrets.DISCORD_ROLE_ID }}
-        run: python notifier.py
+        run: python pypi-release-discord/notifier.py
