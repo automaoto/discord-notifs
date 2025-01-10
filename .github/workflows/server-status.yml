@@ -1,0 +1,64 @@
+name: Server Status Checker
+
+on:
+  schedule:
+    - cron: "*/30 * * * *"  # Runs every 30 minutes
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  check-server-status:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main  # Fetch the default branch
+
+      - name: Configure Git
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "GitHub Actions"
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11.0"
+
+      - name: Install dependencies
+        run: pip install -r server-status/requirements.txt
+
+      - name: Fetch state branch
+        run: |
+          git fetch origin state || git checkout --orphan state
+          git checkout state || echo "Initializing state branch"
+          if [ "$(git branch --show-current)" = "state" ]; then
+            echo "Initialized state branch"
+            git commit --allow-empty -m "Initialize state branch" || echo "State branch already initialized"
+            git push origin state
+          fi
+
+      - name: Ensure latest_status.txt exists
+        run: |
+          touch server-status/latest_status.txt
+          git add server-status/latest_status.txt
+          git commit -m "Ensure latest_status.txt exists" || echo "No changes to commit"
+          git push origin state
+
+      - name: Setup .secrets_status
+        run: |
+          echo "SERVER_WEBHOOK_URL=${{ secrets.SERVER_WEBHOOK_URL }}" > .secrets_status
+          echo "MAOTO_API_KEY=${{ secrets.MAOTO_API_KEY }}" >> .secrets_status
+
+      - name: Run server status checker
+        env:
+          SERVER_WEBHOOK_URL: ${{ secrets.SERVER_WEBHOOK_URL }}
+        run: python server-status/server_status.py
+
+      - name: Push updated status to state branch
+        if: success()  # Only push updates if the script runs successfully
+        run: |
+          git add server-status/latest_status.txt
+          git commit -m "Update latest status" || echo "No changes to commit"
+          git push origin state

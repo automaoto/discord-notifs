@@ -1,0 +1,46 @@
+name: PyPI Release Notifier
+
+on:
+  schedule:
+    - cron: "0 */3 * * *"  # Runs every 3 hours
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  check_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main  # Fetch the default branch
+
+      - name: Configure Git
+        run: |
+          git config --global user.email "you@example.com"
+          git config --global user.name "GitHub Actions"
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11.0"
+
+      - name: Install dependencies
+        run: pip install -r pypi-release-discord/requirements.txt
+
+      - name: Fetch state branch
+        run: |
+          git fetch origin state || git checkout --orphan state
+          git checkout state || echo "Initializing state branch"
+          if [ "$(git branch --show-current)" = "state" ]; then
+            echo "Initialized state branch"
+            git commit --allow-empty -m "Initialize state branch" || echo "State branch already initialized"
+            git push origin state
+          fi
+
+      - name: Run notifier script
+        env:
+          PYPI_WEBHOOK_URL: ${{ secrets.PYPI_WEBHOOK_URL }}
+          DISCORD_ROLE_ID: ${{ secrets.DISCORD_ROLE_ID }}
+        run: python pypi-release-discord/notifier.py
