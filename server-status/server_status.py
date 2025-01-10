@@ -3,7 +3,7 @@ import os
 from dotenv import load_dotenv
 import requests
 
-# Load environment variables from the .secrets_status file
+# Load environment variables from .secrets_status
 load_dotenv('.secrets_status')
 SERVER_WEBHOOK_URL = os.getenv("SERVER_WEBHOOK_URL")  # Discord Webhook URL
 STATUS_FILE = "server_status/latest_status.txt"  # File to track last status
@@ -37,11 +37,11 @@ def send_discord_notification(is_up):
 def check_server_status():
     """Check the server status and send a notification if it changes."""
     try:
-        # Initialize the agent (uses secret key automatically from .secrets_status)
+        # Initialize the agent
         agent = Maoto(receive_messages=False)
-        is_server_up = agent.check_status()  # Returns True (UP) or False (DOWN)
+        is_server_up = agent.check_status()  # True if server is UP, False otherwise
 
-        # Read the last status
+        # Read the last status from the state file
         last_status = read_last_status()
         current_status = "UP" if is_server_up else "DOWN"
 
@@ -51,9 +51,9 @@ def check_server_status():
             write_last_status(current_status)
         else:
             print(f"No status change. Server is still {current_status}.")
-
     except Exception as e:
         print(f"Error checking server status: {e}")
+        # If there's an error, assume server is down and update status if needed
         if read_last_status() != "DOWN":
             send_discord_notification(False)
             write_last_status("DOWN")
