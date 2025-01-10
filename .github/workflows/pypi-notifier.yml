@@ -22,10 +22,13 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Download latest version artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: latest-version
-        continue-on-error: true  # Allow the workflow to proceed if the artifact doesn't exist (first run)
+        continue-on-error: true  # Allow workflow to proceed if the artifact doesn't exist (first run)
+
+      - name: Check latest version file
+        run: cat latest_version.txt || echo "File not found"
 
       - name: Run notifier script
         env:
@@ -35,7 +38,7 @@ jobs:
 
       - name: Upload latest version artifact
         if: success()  # Only upload if the script succeeds
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: latest-version
           path: latest_version.txt
