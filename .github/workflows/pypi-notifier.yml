@@ -4,11 +4,6 @@ on:
   schedule:
     - cron: "0 * * * *"  # Runs every hour
   workflow_dispatch:  # Allows manual triggering
-    inputs:
-      latest_version:
-        description: "Manually set the latest version (leave blank for default)"
-        required: false
-        default: ""
 
 jobs:
   check_release:
@@ -26,23 +21,21 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
+      - name: Download latest version artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: latest-version
+        continue-on-error: true  # Allow the workflow to proceed if the artifact doesn't exist (first run)
+
       - name: Run notifier script
         env:
           PYPI_WEBHOOK_URL: ${{ secrets.PYPI_WEBHOOK_URL }}
           DISCORD_ROLE_ID: ${{ secrets.DISCORD_ROLE_ID }}
-          LATEST_VERSION: ${{ inputs.latest_version || vars.LATEST_VERSION }}  # Use input or default variable
         run: python notifier.py
 
-      - name: Install GitHub CLI
-        run: sudo apt-get install gh -y
-
-      - name: Authenticate GitHub CLI
-        run: gh auth setup-git
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update Repository Variable
-        if: success()  # Only run if the script succeeds
-        run: gh variable set LATEST_VERSION --body "${{ steps.set_env.outputs.latest_version }}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Upload latest version artifact
+        if: success()  # Only upload if the script succeeds
+        uses: actions/upload-artifact@v3
+        with:
+          name: latest-version
+          path: latest_version.txt
