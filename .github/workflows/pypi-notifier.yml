@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: "0 * * * *"  # Runs every hour
   workflow_dispatch:  # Allows manual triggering
+    inputs:
+      latest_version:
+        description: "Manually set the latest version (leave blank for default)"
+        required: false
+        default: ""
 
 jobs:
   check_release:
@@ -25,9 +30,19 @@ jobs:
         env:
           PYPI_WEBHOOK_URL: ${{ secrets.PYPI_WEBHOOK_URL }}
           DISCORD_ROLE_ID: ${{ secrets.DISCORD_ROLE_ID }}
-          LATEST_VERSION: ${{ vars.LATEST_VERSION }}  # Provide the last version to the script
+          LATEST_VERSION: ${{ inputs.latest_version || vars.LATEST_VERSION }}  # Use input or default variable
         run: python notifier.py
 
-      - name: Update LATEST_VERSION variable
-        if: success()
-        run: echo "LATEST_VERSION=${{ steps.set_env.outputs.latest_version }}" >> $GITHUB_ENV
+      - name: Install GitHub CLI
+        run: sudo apt-get install gh -y
+
+      - name: Authenticate GitHub CLI
+        run: gh auth setup-git
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Repository Variable
+        if: success()  # Only run if the script succeeds
+        run: gh variable set LATEST_VERSION --body "${{ steps.set_env.outputs.latest_version }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
