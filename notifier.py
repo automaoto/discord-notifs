@@ -10,6 +10,7 @@ load_dotenv()
 PYPI_WEBHOOK_URL = os.getenv("PYPI_WEBHOOK_URL")
 DISCORD_ROLE_ID = os.getenv("DISCORD_ROLE_ID")
 PYPI_RSS_FEED = "https://pypi.org/rss/project/maoto-agent/releases.xml"
+LATEST_VERSION_FILE = "latest_version.txt"  # Artifact file to store the latest version
 
 def is_stable_version(version):
     """Check if a version is a stable release."""
@@ -20,7 +21,7 @@ def get_latest_version():
     response = requests.get(PYPI_RSS_FEED)
     response.raise_for_status()
     tree = ElementTree.fromstring(response.content)
-    
+
     stable_versions = [
         item.find("title").text.split()[-1]
         for item in tree.findall(".//item")
@@ -29,6 +30,18 @@ def get_latest_version():
     if stable_versions:
         return sorted(stable_versions, key=lambda v: list(map(int, v.split("."))), reverse=True)[0]
     return None
+
+def read_last_version():
+    """Read the last notified version from the artifact file."""
+    if os.path.exists(LATEST_VERSION_FILE):
+        with open(LATEST_VERSION_FILE, "r") as f:
+            return f.read().strip()
+    return None
+
+def write_last_version(version):
+    """Write the last notified version to the artifact file."""
+    with open(LATEST_VERSION_FILE, "w") as f:
+        f.write(version)
 
 def post_to_discord(version):
     """Send an advanced notification to Discord."""
@@ -63,8 +76,8 @@ def main():
             print("No stable version found.")
             return
 
-        # Get the last notified version from the environment
-        last_version = os.getenv("LATEST_VERSION")
+        # Read the last notified version from the artifact file
+        last_version = read_last_version()
         # print(f"Last version: {last_version}, Latest version: {latest_version}")
 
         # Post to Discord if the version is new
@@ -72,9 +85,8 @@ def main():
             print(f"New version detected: {latest_version}. Sending notification.")
             post_to_discord(latest_version)
 
-            # Save the latest version to the GitHub environment
-            with open(os.getenv("GITHUB_ENV"), "a") as env_file:
-                env_file.write(f"LATEST_VERSION={latest_version}\n")
+            # Save the latest version to the artifact file
+            write_last_version(latest_version)
         # else:
             # print("No new version detected.")
     except Exception as e:
