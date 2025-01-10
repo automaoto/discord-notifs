@@ -3,14 +3,16 @@ import os
 from xml.etree import ElementTree
 from dotenv import load_dotenv
 import re
+import subprocess
 
 load_dotenv()
 
-# Your Discord webhook URL
+# Environment variables
 PYPI_WEBHOOK_URL = os.getenv("PYPI_WEBHOOK_URL")
 DISCORD_ROLE_ID = os.getenv("DISCORD_ROLE_ID")
 PYPI_RSS_FEED = "https://pypi.org/rss/project/maoto-agent/releases.xml"
-LATEST_VERSION_FILE = "latest_version.txt"  # Artifact file to store the latest version
+LATEST_VERSION_FILE = "latest_version.txt"
+STATE_BRANCH = "state"
 
 def is_stable_version(version):
     """Check if a version is a stable release."""
@@ -32,19 +34,34 @@ def get_latest_version():
     return None
 
 def read_last_version():
-    """Read the last notified version from the artifact file."""
-    if os.path.exists(LATEST_VERSION_FILE):
-        with open(LATEST_VERSION_FILE, "r") as f:
-            return f.read().strip()
-    return None  # Return None if the file doesn't exist
+    """Read the last notified version from the state branch."""
+    try:
+        # Checkout the state branch and fetch the latest_version.txt
+        subprocess.run(["git", "fetch", "origin", STATE_BRANCH], check=True)
+        subprocess.run(["git", "checkout", STATE_BRANCH], check=True)
+
+        if os.path.exists(LATEST_VERSION_FILE):
+            with open(LATEST_VERSION_FILE, "r") as f:
+                return f.read().strip()
+    except Exception as e:
+        print(f"Error reading last version: {e}")
+    return None
 
 def write_last_version(version):
-    """Write the last notified version to the artifact file."""
-    with open(LATEST_VERSION_FILE, "w") as f:
-        f.write(version)
+    """Write the last notified version to the state branch."""
+    try:
+        with open(LATEST_VERSION_FILE, "w") as f:
+            f.write(version)
+
+        # Commit the updated file to the state branch
+        subprocess.run(["git", "add", LATEST_VERSION_FILE], check=True)
+        subprocess.run(["git", "commit", "-m", f"Update latest version to {version}"], check=True)
+        subprocess.run(["git", "push", "origin", STATE_BRANCH], check=True)
+    except Exception as e:
+        print(f"Error writing last version: {e}")
 
 def post_to_discord(version):
-    """Send an advanced notification to Discord."""
+    """Send a notification to Discord."""
     embed = {
         "title": f"🚀 New Stable Release",
         "description": (
@@ -76,25 +93,19 @@ def main():
             print("No stable version found.")
             return
 
-        # Read the last notified version from the artifact file
+        # Read the last notified version from the state branch
         last_version = read_last_version()
-        # print(f"Last version: {last_version}, Latest version: {latest_version}")
+        print(f"Last version: {last_version}, Latest version: {latest_version}")
 
         # Post to Discord if the version is new
         if latest_version != last_version:
             print(f"New version detected: {latest_version}. Sending notification.")
             post_to_discord(latest_version)
-
-            # Save the latest version to the artifact file
             write_last_version(latest_version)
-        # else:
-        #     print("No new version detected.")
+        else:
+            print("No new version detected. Latest version already notified.")
     except Exception as e:
         print(f"Error: {e}")
 
 if __name__ == "__main__":
-    # Create an empty artifact file if it doesn't exist
-    if not os.path.exists(LATEST_VERSION_FILE):
-        with open(LATEST_VERSION_FILE, "w") as f:
-            f.write("")
     main()
