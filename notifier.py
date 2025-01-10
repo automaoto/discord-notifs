@@ -36,7 +36,7 @@ def read_last_version():
     if os.path.exists(LATEST_VERSION_FILE):
         with open(LATEST_VERSION_FILE, "r") as f:
             return f.read().strip()
-    return None
+    return None  # Return None if the file doesn't exist
 
 def write_last_version(version):
     """Write the last notified version to the artifact file."""
@@ -88,9 +88,13 @@ def main():
             # Save the latest version to the artifact file
             write_last_version(latest_version)
         # else:
-            # print("No new version detected.")
+        #     print("No new version detected.")
     except Exception as e:
         print(f"Error: {e}")
 
 if __name__ == "__main__":
+    # Create an empty artifact file if it doesn't exist
+    if not os.path.exists(LATEST_VERSION_FILE):
+        with open(LATEST_VERSION_FILE, "w") as f:
+            f.write("")
     main()
