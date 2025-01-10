@@ -11,7 +11,7 @@ load_dotenv()
 PYPI_WEBHOOK_URL = os.getenv("PYPI_WEBHOOK_URL")
 DISCORD_ROLE_ID = os.getenv("DISCORD_ROLE_ID")
 PYPI_RSS_FEED = "https://pypi.org/rss/project/maoto-agent/releases.xml"
-LATEST_VERSION_FILE = "latest_version.txt"
+LATEST_VERSION_FILE = "pypi-release-discord/latest_version.txt"
 STATE_BRANCH = "state"
 
 def is_stable_version(version):
