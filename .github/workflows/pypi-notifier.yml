@@ -12,6 +12,9 @@ jobs:
     steps:
       - name: Check out code
         uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: main  # Fetch the default branch
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -21,24 +24,13 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Download latest version artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: latest-version
-        continue-on-error: true  # Allow workflow to proceed if the artifact doesn't exist (first run)
-
-      - name: Check latest version file
-        run: cat latest_version.txt || echo "File not found"
+      - name: Fetch state branch
+        run: |
+          git fetch origin state || git checkout --orphan state
+          git checkout state || echo "No state branch exists, initializing."
 
       - name: Run notifier script
         env:
           PYPI_WEBHOOK_URL: ${{ secrets.PYPI_WEBHOOK_URL }}
           DISCORD_ROLE_ID: ${{ secrets.DISCORD_ROLE_ID }}
         run: python notifier.py
-
-      - name: Upload latest version artifact
-        if: success()  # Only upload if the script succeeds
-        uses: actions/upload-artifact@v4
-        with:
-          name: latest-version
-          path: latest_version.txt
