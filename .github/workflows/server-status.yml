@@ -1,1 +1,36 @@
+name: Server Status Checker
 
+on:
+  schedule:
+    - cron: "*/30 * * * *"  # Runs every 30 minutes
+  workflow_dispatch:  # Allows manual triggering
+
+jobs:
+  check-server-status:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r server-status/requirements.txt
+
+      - name: Setup .secrets_status securely
+        run: |
+          echo "SERVER_WEBHOOK_URL=${{ secrets.SERVER_WEBHOOK_URL }}" > .secrets_status
+          echo "MAOTO_API_KEY=${{ secrets.MAOTO_API_KEY }}" >> .secrets_status
+        shell: bash
+
+      - name: Ensure status file exists
+        run: |
+          mkdir -p server_status
+          touch server-status/latest_status.txt
+
+      - name: Run server status checker
+        run: python server-status/server_status.py
