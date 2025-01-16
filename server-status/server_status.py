@@ -59,4 +59,6 @@ def check_server_status():
             write_last_status("DOWN")
 
 if __name__ == "__main__":
+    print("SERVER_WEBHOOK_URL:", os.getenv("SERVER_WEBHOOK_URL"))
+    print("MAOTO_API_KEY:", os.getenv("MAOTO_API_KEY"))
     check_server_status()
