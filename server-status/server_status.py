@@ -38,7 +38,7 @@ def check_server_status():
     """Check the server status and send a notification if it changes."""
     try:
         # Initialize the agent (uses secret key automatically from .secrets_status)
-        agent = Maoto(receive_messages=False)
+        agent = Maoto(connection_mode='no_nat')
         is_server_up = agent.check_status()  # Returns True (UP) or False (DOWN)
 
         # Read the last status
