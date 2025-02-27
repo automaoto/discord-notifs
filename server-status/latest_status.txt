@@ -1,1 +1,1 @@
-DOWN
+{"marketplace": "UP", "assistant": "UP"}
