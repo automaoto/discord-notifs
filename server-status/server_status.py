@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 # Load environment variables from .secrets_status
 load_dotenv('.secrets_status')
 SERVER_WEBHOOK_URL = os.getenv("SERVER_WEBHOOK_URL")
-STATUS_FILE = "server_status/latest_status.txt"  # JSON file to track last statuses
+STATUS_FILE = "server-status/latest_status.txt"  # JSON file to track last statuses
 
 def read_last_status():
     """Read the last known statuses from the status file."""
