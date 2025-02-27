@@ -1,4 +1,4 @@
 maoto-agent
 requests==2.32.3
 python-dotenv==1.0.1
-aiohttp
+aiohttp==3.8.6
