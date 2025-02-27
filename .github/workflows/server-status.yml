@@ -24,10 +24,10 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: "3.11.0"
+          python-version: "3.11"
 
       - name: Install dependencies
-        run: pip install -r server-status/requirements.txt
+        run: pip install -r server_status/requirements.txt
 
       - name: Fetch state branch
         run: |
@@ -41,8 +41,9 @@ jobs:
 
       - name: Ensure latest_status.txt exists
         run: |
-          touch server-status/latest_status.txt
-          git add server-status/latest_status.txt
+          mkdir -p server_status
+          touch server_status/latest_status.txt
+          git add server_status/latest_status.txt
           git commit -m "Ensure latest_status.txt exists" || echo "No changes to commit"
           git push origin state
 
@@ -52,13 +53,11 @@ jobs:
           echo "MAOTO_API_KEY=${{ secrets.MAOTO_API_KEY }}" >> .secrets_status
 
       - name: Run server status checker
-        env:
-          SERVER_WEBHOOK_URL: ${{ secrets.SERVER_WEBHOOK_URL }}
-        run: python server-status/server_status.py
+        run: python server_status/server_status.py
 
       - name: Push updated status to state branch
         if: success()  # Only push updates if the script runs successfully
         run: |
-          git add server-status/latest_status.txt
+          git add server_status/latest_status.txt
           git commit -m "Update latest status" || echo "No changes to commit"
           git push origin state
