@@ -37,7 +37,8 @@ def send_discord_notification(statuses):
     message = (
         "**Server Status Update**\n"
         f"Marketplace: {'🟢 UP' if statuses['marketplace'] == 'UP' else '🔴 DOWN'}\n"
-        f"Assistant: {'🟢 UP' if statuses['assistant'] == 'UP' else '🔴 DOWN'}"
+        f"Assistant: {'🟢 UP' if statuses['assistant'] == 'UP' else '🔴 DOWN'}\n"
+        f"Telegram: {'🟢 UP' if statuses['telegram'] == 'UP' else '🔴 DOWN'}"
     )
     payload = {
         "content": message,
@@ -53,7 +54,8 @@ def main():
     # Define the health check endpoints for each server
     endpoints = {
         "marketplace": "https://mp.maoto.world/healthz",
-        "assistant": "https://telegram.maoto.world/healthz"
+        "assistant": "https://assistant.maoto.world/healthz",
+        "telegram": "https://assistant.maoto.world/healthz"
     }
     current_statuses = {}
     for key, url in endpoints.items():
