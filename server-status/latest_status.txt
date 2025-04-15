@@ -1,1 +1,1 @@
-{"marketplace": "DOWN", "assistant": "DOWN", "telegram": "DOWN"}
+{"marketplace": "UP", "assistant": "UP", "telegram": "UP"}
